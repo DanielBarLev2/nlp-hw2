@@ -82,7 +82,17 @@ def lm_wrapper(in_word_index, out_word_index, num_to_word_embedding, dimensions,
 
     # Construct the data batch and run you backpropogation implementation
     ### YOUR CODE HERE
-    raise NotImplementedError
+    # raise NotImplementedError
+    batch_idx = np.random.randint(0, len(in_word_index), size=BATCH_SIZE)
+
+    for n, idx in enumerate(batch_idx):
+        word_in = in_word_index[idx]
+        word_out = out_word_index[idx]
+
+        data[n, :] = num_to_word_embedding[word_in]
+        labels[n, :] = int_to_one_hot(word_out, output_dim)
+
+    cost, grad = forward_backward_prop(data, labels, params, dimensions)
     ### END YOUR CODE
 
     cost /= BATCH_SIZE
@@ -101,9 +111,14 @@ def eval_neural_lm(eval_data_path):
 
     perplexity = 0
     ### YOUR CODE HERE
-    raise NotImplementedError
+    # raise NotImplementedError
+    total_logprob = 0.0
+    for src_idx, tgt_idx in zip(in_word_index, out_word_index):
+        x = np.asarray(num_to_word_embedding[src_idx]).reshape(1, input_dim)
+        prob = forward(x, tgt_idx, params, dimensions)
+        total_logprob += np.log(prob + 1e-12)
     ### END YOUR CODE
-
+    perplexity = np.exp(-total_logprob / num_of_examples)
     return perplexity
 
 
@@ -144,6 +159,9 @@ if __name__ == "__main__":
     params = sgd(
             lambda vec: lm_wrapper(in_word_index, out_word_index, num_to_word_embedding, dimensions, vec),
             params, LEARNING_RATE, NUM_OF_SGD_ITERATIONS, None, True, 1000)
+
+    np.save('saved_params_40000.npy', params)
+    print("parameters saved to saved_params_40000.npy")
 
     print(f"training took {time.time() - startTime} seconds")
 
